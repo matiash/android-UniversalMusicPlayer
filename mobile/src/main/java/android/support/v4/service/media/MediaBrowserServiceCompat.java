@@ -26,8 +26,6 @@ import android.os.RemoteException;
 import android.support.v4.content.pm.ParceledListSliceCompat;
 import android.support.v4.media.browse.MediaBrowserCompat;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.service.IMediaBrowserServiceCompat;
-import android.support.v4.service.IMediaBrowserServiceCompatCallbacks;
 import android.support.v4.util.ArrayMap;
 import android.util.Log;
 

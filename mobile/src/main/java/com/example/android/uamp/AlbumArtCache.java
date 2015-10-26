@@ -18,7 +18,7 @@ package com.example.android.uamp;
 
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.util.LruCache;
+import android.support.v4.util.LruCache;
 
 import com.example.android.uamp.utils.BitmapHelper;
 import com.example.android.uamp.utils.LogHelper;

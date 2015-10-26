@@ -15,13 +15,13 @@
  */
 package com.example.android.uamp.ui.tv;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.media.browse.MediaBrowser;
-import android.media.session.MediaController;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.media.browse.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
@@ -30,14 +30,14 @@ import com.example.android.uamp.utils.LogHelper;
 /**
  * Main activity for the Android TV user interface.
  */
-public class TvBrowseActivity extends Activity
+public class TvBrowseActivity extends TvBaseActivity
         implements TvBrowseFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(TvBrowseActivity.class);
     public static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
     public static final String BROWSE_TITLE = "com.example.android.uamp.BROWSE_TITLE";
 
-    private MediaBrowser mMediaBrowser;
+    private MediaBrowserCompat mMediaBrowser;
 
     private String mMediaId;
     private String mBrowseTitle;
@@ -49,7 +49,7 @@ public class TvBrowseActivity extends Activity
 
         setContentView(R.layout.tv_activity_player);
 
-        mMediaBrowser = new MediaBrowser(this,
+        mMediaBrowser = new MediaBrowserCompat(this,
                 new ComponentName(this, MusicService.class),
                 mConnectionCallback, null);
     }
@@ -99,22 +99,26 @@ public class TvBrowseActivity extends Activity
     }
 
     @Override
-    public MediaBrowser getMediaBrowser() {
+    public MediaBrowserCompat getMediaBrowser() {
         return mMediaBrowser;
     }
 
-    private final MediaBrowser.ConnectionCallback mConnectionCallback =
-            new MediaBrowser.ConnectionCallback() {
+    private final MediaBrowserCompat.ConnectionCallback mConnectionCallback =
+            new MediaBrowserCompat.ConnectionCallback() {
                 @Override
                 public void onConnected() {
                     LogHelper.d(TAG, "onConnected: session token ",
                             mMediaBrowser.getSessionToken());
 
-                    MediaController mediaController = new MediaController(
-                            TvBrowseActivity.this, mMediaBrowser.getSessionToken());
-                    setMediaController(mediaController);
+                    try {
+                        MediaControllerCompat mediaController = new MediaControllerCompat(
+                                TvBrowseActivity.this, mMediaBrowser.getSessionToken());
+                        setSupportMediaController(mediaController);
 
-                    navigateToBrowser(mMediaId);
+                        navigateToBrowser(mMediaId);
+                    } catch (RemoteException ex) {
+                        LogHelper.e(TAG, ex, "Error creating MediaControllerCompat");
+                    }
                 }
 
                 @Override
@@ -125,7 +129,7 @@ public class TvBrowseActivity extends Activity
                 @Override
                 public void onConnectionSuspended() {
                     LogHelper.d(TAG, "onConnectionSuspended");
-                    setMediaController(null);
+                    setSupportMediaController(null);
                 }
             };
 }

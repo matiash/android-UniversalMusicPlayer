@@ -17,8 +17,6 @@ package com.example.android.uamp.ui.tv;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.media.browse.MediaBrowser;
-import android.media.browse.MediaBrowser.MediaItem;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -29,8 +27,11 @@ import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.VerticalGridPresenter;
 import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.media.browse.MediaBrowserCompat;
+import android.support.v4.media.browse.MediaBrowserCompat.MediaItem;
 import android.text.TextUtils;
 
+import com.example.android.uamp.ui.MediaControllerProvider;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.List;
@@ -46,6 +47,7 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
     private ArrayObjectAdapter mAdapter;
     private String mMediaId;
     private MediaFragmentListener mMediaFragmentListener;
+    private MediaControllerProvider mMediaControllerProvider;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -69,6 +71,7 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mMediaFragmentListener = (MediaFragmentListener) activity;
+        mMediaControllerProvider = (MediaControllerProvider) activity;
     }
 
     protected void setMediaId(String mediaId) {
@@ -76,7 +79,7 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
         if (TextUtils.equals(mMediaId, mediaId)) {
             return;
         }
-        MediaBrowser mediaBrowser = mMediaFragmentListener.getMediaBrowser();
+        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
 
         // First, unsubscribe from old mediaId:
         if (mMediaId != null) {
@@ -92,7 +95,7 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
     @Override
     public void onStop() {
         super.onStop();
-        MediaBrowser mediaBrowser = mMediaFragmentListener.getMediaBrowser();
+        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
         if (mediaBrowser != null && mediaBrowser.isConnected() && mMediaId != null) {
             mediaBrowser.unsubscribe(mMediaId);
         }
@@ -102,10 +105,11 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
     public void onDetach() {
         super.onDetach();
         mMediaFragmentListener = null;
+        mMediaControllerProvider = null;
     }
 
     public interface MediaFragmentListener {
-        MediaBrowser getMediaBrowser();
+        MediaBrowserCompat getMediaBrowser();
     }
 
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
@@ -113,7 +117,7 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                                   RowPresenter.ViewHolder rowViewHolder, Row row) {
 
-            getActivity().getMediaController().getTransportControls()
+            mMediaControllerProvider.getSupportMediaController().getTransportControls()
                     .playFromMediaId(((MediaItem) item).getMediaId(), null);
 
             Intent intent = new Intent(getActivity(), TvPlaybackActivity.class);
@@ -126,8 +130,8 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
         }
     }
 
-    private final MediaBrowser.SubscriptionCallback mSubscriptionCallback =
-            new MediaBrowser.SubscriptionCallback() {
+    private final MediaBrowserCompat.SubscriptionCallback mSubscriptionCallback =
+            new MediaBrowserCompat.SubscriptionCallback() {
         @Override
         public void onChildrenLoaded(@NonNull String parentId, @NonNull List<MediaItem> children) {
             mAdapter.clear();

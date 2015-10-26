@@ -17,12 +17,6 @@ package com.example.android.uamp.ui.tv;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser;
-import android.media.browse.MediaBrowser.MediaItem;
-import android.media.session.MediaController;
-import android.media.session.MediaSession;
-import android.media.session.MediaSession.QueueItem;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v17.leanback.app.BrowseFragment;
@@ -34,9 +28,16 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.browse.MediaBrowserCompat;
+import android.support.v4.media.browse.MediaBrowserCompat.MediaItem;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.MediaSessionCompat.QueueItem;
 import android.view.View;
 
 import com.example.android.uamp.R;
+import com.example.android.uamp.ui.MediaControllerProvider;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.HashSet;
@@ -46,7 +47,7 @@ import java.util.List;
 /**
  * Browse media categories and current playing queue.
  * <p/>
- * WARNING: This sample's UI is implemented for a specific MediaBrowser tree structure.
+ * WARNING: This sample's UI is implemented for a specific MediaBrowserCompat tree structure.
  * It expects a tree that is three levels deep under root:
  * - level 0: root
  * - level 1: categories of categories (like "by genre", "by artist", "playlists")
@@ -54,17 +55,17 @@ import java.util.List;
  * "playlists -> my favorite music")
  * - level 3: the actual music
  * <p/>
- * If you are reusing this TV code, make sure you adapt it to your MediaBrowser structure, in case
+ * If you are reusing this TV code, make sure you adapt it to your MediaBrowserCompat structure, in case
  * it is not the same.
  * <p/>
  * <p/>
- * It uses a {@link MediaBrowser} to connect to the {@link com.example.android.uamp.MusicService}.
+ * It uses a {@link MediaBrowserCompat} to connect to the {@link com.example.android.uamp.MusicService}.
  * Once connected, the fragment subscribes to get the children of level 1 and then, for each
  * children, it adds a ListRow and subscribes for its children, which, when received, are
  * added to the ListRow. These items (like "Rock"), when clicked, will open a
  * TvVerticalGridActivity that lists all songs of the specified category on a grid-like UI.
  * <p/>
- * This fragment also shows the MediaSession queue ("now playing" list), in case there is
+ * This fragment also shows the MediaSessionCompat queue ("now playing" list), in case there is
  * something playing.
  */
 public class TvBrowseFragment extends BrowseFragment {
@@ -74,17 +75,18 @@ public class TvBrowseFragment extends BrowseFragment {
     private ArrayObjectAdapter mRowsAdapter;
     private ArrayObjectAdapter mListRowAdapter;
     private MediaFragmentListener mMediaFragmentListener;
+    private MediaControllerProvider mMediaControllerProvider;
 
-    private MediaBrowser mMediaBrowser;
+    private MediaBrowserCompat mMediaBrowser;
     private HashSet<String> mSubscribedMediaIds;
 
-    // Receive callbacks from the MediaController. Here we update our state such as which queue
-    // is being shown, the current title and description and the PlaybackState.
-    private final MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
+    // Receive callbacks from the MediaControllerCompat. Here we update our state such as which queue
+    // is being shown, the current title and description and the PlaybackStateCompat.
+    private final MediaControllerCompat.Callback mMediaControllerCallback = new MediaControllerCompat.Callback() {
         @Override
-        public void onMetadataChanged(MediaMetadata metadata) {
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
             if (metadata != null) {
-                MediaController mediaController = getActivity().getMediaController();
+                MediaControllerCompat mediaController = mMediaControllerProvider.getSupportMediaController();
                 long activeQueueId;
                 if (mediaController.getPlaybackState() == null) {
                     activeQueueId = QueueItem.UNKNOWN_ID;
@@ -99,7 +101,7 @@ public class TvBrowseFragment extends BrowseFragment {
         @Override
         public void onQueueChanged(List<QueueItem> queue) {
             // queue has changed somehow
-            MediaController mediaController = getActivity().getMediaController();
+            MediaControllerCompat mediaController = mMediaControllerProvider.getSupportMediaController();
 
             long activeQueueId;
             if (mediaController.getPlaybackState() == null) {
@@ -128,12 +130,12 @@ public class TvBrowseFragment extends BrowseFragment {
         mListRowAdapter.addAll(0, queue);
     }
 
-    private final MediaBrowser.SubscriptionCallback mSubscriptionCallback =
-            new MediaBrowser.SubscriptionCallback() {
+    private final MediaBrowserCompat.SubscriptionCallback mSubscriptionCallback =
+            new MediaBrowserCompat.SubscriptionCallback() {
 
                 @Override
                 public void onChildrenLoaded(@NonNull String parentId,
-                                             @NonNull List<MediaBrowser.MediaItem> children) {
+                                             @NonNull List<MediaBrowserCompat.MediaItem> children) {
 
                     mRowsAdapter.clear();
                     CardPresenter cardPresenter = new CardPresenter();
@@ -155,7 +157,7 @@ public class TvBrowseFragment extends BrowseFragment {
                         }
                     }
 
-                    MediaController mediaController = getActivity().getMediaController();
+                    MediaControllerCompat mediaController = mMediaControllerProvider.getSupportMediaController();
 
                     if (mediaController.getQueue() != null
                             && !mediaController.getQueue().isEmpty()) {
@@ -186,7 +188,7 @@ public class TvBrowseFragment extends BrowseFragment {
     /**
      * This callback fills content for a single Row in the BrowseFragment.
      */
-    private class RowSubscriptionCallback extends MediaBrowser.SubscriptionCallback {
+    private class RowSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
 
         private final ArrayObjectAdapter mListRowAdapter;
 
@@ -196,9 +198,9 @@ public class TvBrowseFragment extends BrowseFragment {
 
         @Override
         public void onChildrenLoaded(@NonNull String parentId,
-                                     @NonNull List<MediaBrowser.MediaItem> children) {
+                                     @NonNull List<MediaBrowserCompat.MediaItem> children) {
             mListRowAdapter.clear();
-            for (MediaBrowser.MediaItem item : children) {
+            for (MediaBrowserCompat.MediaItem item : children) {
                 mListRowAdapter.add(item);
             }
             mListRowAdapter.notifyArrayItemRangeChanged(0, children.size());
@@ -247,9 +249,9 @@ public class TvBrowseFragment extends BrowseFragment {
                             item.getDescription().getTitle());
                     startActivity(intent);
 
-                } else if (o instanceof MediaSession.QueueItem) {
-                    MediaSession.QueueItem item = (MediaSession.QueueItem) o;
-                    getActivity().getMediaController().getTransportControls()
+                } else if (o instanceof MediaSessionCompat.QueueItem) {
+                    MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) o;
+                    mMediaControllerProvider.getSupportMediaController().getTransportControls()
                             .skipToQueueItem(item.getQueueId());
                     Intent intent = new Intent(getActivity(), TvPlaybackActivity.class);
                     startActivity(intent);
@@ -277,6 +279,8 @@ public class TvBrowseFragment extends BrowseFragment {
             LogHelper.e(TAG, "TVBrowseFragment can only be attached to an activity that " +
                     "implements MediaFragmentListener", ex);
         }
+
+        mMediaControllerProvider = (MediaControllerProvider)activity;
     }
 
     @Override
@@ -288,8 +292,8 @@ public class TvBrowseFragment extends BrowseFragment {
             }
             mSubscribedMediaIds.clear();
         }
-        if (getActivity().getMediaController() != null) {
-            getActivity().getMediaController().unregisterCallback(mMediaControllerCallback);
+        if (mMediaControllerProvider.getSupportMediaController() != null) {
+            mMediaControllerProvider.getSupportMediaController().unregisterCallback(mMediaControllerCallback);
         }
     }
 
@@ -297,6 +301,7 @@ public class TvBrowseFragment extends BrowseFragment {
     public void onDetach() {
         super.onDetach();
         mMediaFragmentListener = null;
+        mMediaControllerProvider = null;
     }
 
     public void initializeWithMediaId(String mediaId) {
@@ -310,13 +315,13 @@ public class TvBrowseFragment extends BrowseFragment {
 
         subscribeToMediaId(mediaId, mSubscriptionCallback);
 
-        // Add MediaController callback so we can redraw the list when metadata changes:
-        if (getActivity().getMediaController() != null) {
-            getActivity().getMediaController().registerCallback(mMediaControllerCallback);
+        // Add MediaControllerCompat callback so we can redraw the list when metadata changes:
+        if (mMediaControllerProvider.getSupportMediaController() != null) {
+            mMediaControllerProvider.getSupportMediaController().registerCallback(mMediaControllerCallback);
         }
     }
 
-    private void subscribeToMediaId(String mediaId, MediaBrowser.SubscriptionCallback callback) {
+    private void subscribeToMediaId(String mediaId, MediaBrowserCompat.SubscriptionCallback callback) {
         if (mSubscribedMediaIds.contains(mediaId)) {
             mMediaBrowser.unsubscribe(mediaId);
         } else {
@@ -326,7 +331,7 @@ public class TvBrowseFragment extends BrowseFragment {
     }
 
     public interface MediaFragmentListener {
-        MediaBrowser getMediaBrowser();
+        MediaBrowserCompat getMediaBrowser();
     }
 
 }

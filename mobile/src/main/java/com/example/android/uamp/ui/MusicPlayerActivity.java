@@ -15,12 +15,12 @@
  */
 package com.example.android.uamp.ui;
 
-import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Intent;
-import android.media.browse.MediaBrowser;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.media.browse.MediaBrowserCompat;
 import android.text.TextUtils;
 
 import com.example.android.uamp.R;
@@ -28,8 +28,8 @@ import com.example.android.uamp.utils.LogHelper;
 
 /**
  * Main activity for the music player.
- * This class hold the MediaBrowser and the MediaController instances. It will create a MediaBrowser
- * when it is created and connect/disconnect on start/stop. Thus, a MediaBrowser will be always
+ * This class hold the MediaBrowserCompat and the MediaControllerCompat instances. It will create a MediaBrowserCompat
+ * when it is created and connect/disconnect on start/stop. Thus, a MediaBrowserCompat will be always
  * connected while this activity is running.
  */
 public class MusicPlayerActivity extends BaseActivity
@@ -45,7 +45,7 @@ public class MusicPlayerActivity extends BaseActivity
     /**
      * Optionally used with {@link #EXTRA_START_FULLSCREEN} to carry a MediaDescription to
      * the {@link FullScreenPlayerActivity}, speeding up the screen rendering
-     * while the {@link android.media.session.MediaController} is connecting.
+     * while the {@link android.support.v4.media.session.MediaControllerCompat} is connecting.
      */
     public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
         "com.example.android.uamp.CURRENT_MEDIA_DESCRIPTION";
@@ -78,10 +78,10 @@ public class MusicPlayerActivity extends BaseActivity
     }
 
     @Override
-    public void onMediaItemSelected(MediaBrowser.MediaItem item) {
+    public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
         LogHelper.d(TAG, "onMediaItemSelected, mediaId=" + item.getMediaId());
         if (item.isPlayable()) {
-            getMediaController().getTransportControls().playFromMediaId(item.getMediaId(), null);
+            getSupportMediaController().getTransportControls().playFromMediaId(item.getMediaId(), null);
         } else if (item.isBrowsable()) {
             navigateToBrowser(item.getMediaId());
         } else {
@@ -121,7 +121,7 @@ public class MusicPlayerActivity extends BaseActivity
         String mediaId = null;
         // check if we were started from a "Play XYZ" voice search. If so, we save the extras
         // (which contain the query details) in a parameter, so we can reuse it later, when the
-        // MediaSession is connected.
+        // MediaSessionCompat is connected.
         if (intent.getAction() != null
             && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)) {
             mVoiceSearchParams = intent.getExtras();
@@ -143,7 +143,7 @@ public class MusicPlayerActivity extends BaseActivity
         if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {
             fragment = new MediaBrowserFragment();
             fragment.setMediaId(mediaId);
-            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.setCustomAnimations(
                 R.animator.slide_in_from_right, R.animator.slide_out_to_left,
                 R.animator.slide_in_from_left, R.animator.slide_out_to_right);
@@ -166,7 +166,7 @@ public class MusicPlayerActivity extends BaseActivity
     }
 
     private MediaBrowserFragment getBrowseFragment() {
-        return (MediaBrowserFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+        return (MediaBrowserFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class MusicPlayerActivity extends BaseActivity
             // send it to the media session and set it to null, so it won't play again
             // when the activity is stopped/started or recreated:
             String query = mVoiceSearchParams.getString(SearchManager.QUERY);
-            getMediaController().getTransportControls().playFromSearch(query, mVoiceSearchParams);
+            getSupportMediaController().getTransportControls().playFromSearch(query, mVoiceSearchParams);
             mVoiceSearchParams = null;
         }
         getBrowseFragment().onConnected();

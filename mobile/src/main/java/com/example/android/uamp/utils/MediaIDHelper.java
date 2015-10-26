@@ -25,7 +25,7 @@ import java.util.Arrays;
  */
 public class MediaIDHelper {
 
-    // Media IDs used on browseable items of MediaBrowser
+    // Media IDs used on browseable items of MediaBrowserCompat
     public static final String MEDIA_ID_ROOT = "__ROOT__";
     public static final String MEDIA_ID_MUSICS_BY_GENRE = "__BY_GENRE__";
     public static final String MEDIA_ID_MUSICS_BY_SEARCH = "__BY_SEARCH__";

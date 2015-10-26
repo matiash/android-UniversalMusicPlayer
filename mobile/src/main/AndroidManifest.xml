@@ -18,6 +18,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.android.uamp" >
 
+    <uses-sdk tools:overrideLibrary="android.support.v17.leanback"/>
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -134,9 +136,17 @@
             android:exported="true"
             tools:ignore="ExportedService">
             <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="android.media.browse.MediaBrowserServiceCompat" />
             </intent-filter>
         </service>
+
+        <receiver android:name=".RemoteControlReceiver">
+            <!-- matiash - necessary?
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+            -->
+        </receiver>
 
         <!-- Service that keeps track of reconnecting to Cast when wifi is enabled. -->
         <service

@@ -25,6 +25,7 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.RemoteException;
+import android.os.ResultReceiver;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -52,8 +53,7 @@ import java.util.List;
  * was constructed.
  * </p>
  */
-public class MediaBrowserCompat {
-
+public final class MediaBrowserCompat {
     private static final String TAG = "MediaBrowserCompat";
     private static final boolean DBG = false;
 
@@ -68,7 +68,7 @@ public class MediaBrowserCompat {
     private final Bundle mRootHints;
     private final Handler mHandler = new Handler();
     private final ArrayMap<String,Subscription> mSubscriptions =
-            new ArrayMap<String, Subscription>();
+            new ArrayMap<String, MediaBrowserCompat.Subscription>();
 
     private int mState = CONNECT_STATE_DISCONNECTED;
     private MediaServiceConnection mServiceConnection;
@@ -90,7 +90,7 @@ public class MediaBrowserCompat {
      * the information returned when browsing.
      */
     public MediaBrowserCompat(Context context, ComponentName serviceComponent,
-                        ConnectionCallback callback, Bundle rootHints) {
+            ConnectionCallback callback, Bundle rootHints) {
         if (context == null) {
             throw new IllegalArgumentException("context must not be null");
         }
@@ -229,8 +229,7 @@ public class MediaBrowserCompat {
     /**
      * Gets the service component that the media browser is connected to.
      */
-    public @NonNull
-    ComponentName getServiceComponent() {
+    public @NonNull ComponentName getServiceComponent() {
         if (!isConnected()) {
             throw new IllegalStateException("getServiceComponent() called while not connected" +
                     " (state=" + mState + ")");
@@ -247,8 +246,7 @@ public class MediaBrowserCompat {
      *
      * @throws IllegalStateException if not connected.
      */
-    public @NonNull
-    String getRoot() {
+    public @NonNull String getRoot() {
         if (!isConnected()) {
             throw new IllegalStateException("getSessionToken() called while not connected (state="
                     + getStateLabel(mState) + ")");
@@ -261,8 +259,7 @@ public class MediaBrowserCompat {
      *
      * @throws IllegalStateException if not connected.
      */
-    public @Nullable
-    Bundle getExtras() {
+    public @Nullable Bundle getExtras() {
         if (!isConnected()) {
             throw new IllegalStateException("getExtras() called while not connected (state="
                     + getStateLabel(mState) + ")");
@@ -281,7 +278,7 @@ public class MediaBrowserCompat {
      *
      * @throws IllegalStateException if not connected.
      */
-    public MediaSessionCompat.Token getSessionToken() {
+    public @NonNull MediaSessionCompat.Token getSessionToken() {
         if (!isConnected()) {
             throw new IllegalStateException("getSessionToken() called while not connected (state="
                     + mState + ")");
@@ -294,18 +291,20 @@ public class MediaBrowserCompat {
      * the specified id and subscribes to receive updates when they change.
      * <p>
      * The list of subscriptions is maintained even when not connected and is
-     * restored after reconnection.  It is ok to subscribe while not connected
+     * restored after reconnection. It is ok to subscribe while not connected
      * but the results will not be returned until the connection completes.
-     * </p><p>
+     * </p>
+     * <p>
      * If the id is already subscribed with a different callback then the new
-     * callback will replace the previous one.
+     * callback will replace the previous one and the child data will be
+     * reloaded.
      * </p>
      *
      * @param parentId The id of the parent media item whose list of children
-     * will be subscribed.
+     *            will be subscribed.
      * @param callback The callback to receive the list of children.
      */
-    public void subscribe(String parentId, SubscriptionCallback callback) {
+    public void subscribe(@NonNull String parentId, @NonNull SubscriptionCallback callback) {
         // Check arguments.
         if (parentId == null) {
             throw new IllegalArgumentException("parentId is null");
@@ -325,7 +324,7 @@ public class MediaBrowserCompat {
 
         // If we are connected, tell the service that we are watching.  If we aren't
         // connected, the service will be told when we connect.
-        if (mState == CONNECT_STATE_CONNECTED && newSubscription) {
+        if (mState == CONNECT_STATE_CONNECTED) {
             try {
                 mServiceBinder.addSubscription(parentId, mServiceCallbacks);
             } catch (RemoteException ex) {
@@ -348,8 +347,8 @@ public class MediaBrowserCompat {
      */
     public void unsubscribe(@NonNull String parentId) {
         // Check arguments.
-        if (parentId == null) {
-            throw new IllegalArgumentException("parentId is null");
+        if (TextUtils.isEmpty(parentId)) {
+            throw new IllegalArgumentException("parentId is empty.");
         }
 
         // Remove from our list.
@@ -364,6 +363,60 @@ public class MediaBrowserCompat {
                 // automatically reregister. So nothing to do here.
                 Log.d(TAG, "removeSubscription failed with RemoteException parentId=" + parentId);
             }
+        }
+    }
+
+    /**
+     * Retrieves a specific {@link MediaItem} from the connected service. Not
+     * all services may support this, so falling back to subscribing to the
+     * parent's id should be used when unavailable.
+     *
+     * @param mediaId The id of the item to retrieve.
+     * @param cb The callback to receive the result on.
+     */
+    public void getItem(final @NonNull String mediaId, @NonNull final ItemCallback cb) {
+        if (TextUtils.isEmpty(mediaId)) {
+            throw new IllegalArgumentException("mediaId is empty.");
+        }
+        if (cb == null) {
+            throw new IllegalArgumentException("cb is null.");
+        }
+        if (mState != CONNECT_STATE_CONNECTED) {
+            Log.i(TAG, "Not connected, unable to retrieve the MediaItem.");
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cb.onError(mediaId);
+                }
+            });
+            return;
+        }
+        ResultReceiver receiver = new ResultReceiver(mHandler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultCode != 0 || resultData == null
+                        || !resultData.containsKey(MediaBrowserServiceCompat.KEY_MEDIA_ITEM)) {
+                    cb.onError(mediaId);
+                    return;
+                }
+                Parcelable item = resultData.getParcelable(MediaBrowserServiceCompat.KEY_MEDIA_ITEM);
+                if (!(item instanceof MediaItem)) {
+                    cb.onError(mediaId);
+                    return;
+                }
+                cb.onItemLoaded((MediaItem)item);
+            }
+        };
+        try {
+            mServiceBinder.getMediaItem(mediaId, receiver);
+        } catch (RemoteException e) {
+            Log.i(TAG, "Remote error getting media item.");
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cb.onError(mediaId);
+                }
+            });
         }
     }
 
@@ -386,7 +439,7 @@ public class MediaBrowserCompat {
     }
 
     private final void onServiceConnected(final IMediaBrowserServiceCompatCallbacks callback,
-                                          final String root, final MediaSessionCompat.Token session, final Bundle extra) {
+            final String root, final MediaSessionCompat.Token session, final Bundle extra) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -529,24 +582,24 @@ public class MediaBrowserCompat {
         private final MediaDescriptionCompat mDescription;
 
         /** @hide */
-        @IntDef(flag=true, value = { FLAG_BROWSABLE, FLAG_PLAYABLE })
         @Retention(RetentionPolicy.SOURCE)
+        @IntDef(flag=true, value = { FLAG_BROWSABLE, FLAG_PLAYABLE })
         public @interface Flags { }
 
         /**
          * Flag: Indicates that the item has children of its own.
          */
-        public static final int FLAG_BROWSABLE = 1;
+        public static final int FLAG_BROWSABLE = 1 << 0;
 
         /**
          * Flag: Indicates that the item is playable.
          * <p>
          * The id of this item may be passed to
-         * {@link MediaControllerCompat.TransportControls#playFromMediaId(String, android.os.Bundle)}
+         * {@link MediaControllerCompat.TransportControls#playFromMediaId(String, Bundle)}
          * to start playing it.
          * </p>
          */
-        public static final int FLAG_PLAYABLE = 2;
+        public static final int FLAG_PLAYABLE = 1 << 1;
 
         /**
          * Create a new MediaItem for use in browsing media.
@@ -554,7 +607,7 @@ public class MediaBrowserCompat {
          *            media id.
          * @param flags The flags for this item.
          */
-        public MediaItem(MediaDescriptionCompat description, @Flags int flags) {
+        public MediaItem(@NonNull MediaDescriptionCompat description, @Flags int flags) {
             if (description == null) {
                 throw new IllegalArgumentException("description cannot be null");
             }
@@ -632,15 +685,14 @@ public class MediaBrowserCompat {
         /**
          * Returns the description of the media.
          */
-        public MediaDescriptionCompat getDescription() {
+        public @NonNull MediaDescriptionCompat getDescription() {
             return mDescription;
         }
 
         /**
          * Returns the media id for this item.
          */
-        public @NonNull
-        String getMediaId() {
+        public @NonNull String getMediaId() {
             return mDescription.getMediaId();
         }
     }
@@ -675,6 +727,9 @@ public class MediaBrowserCompat {
     public static abstract class SubscriptionCallback {
         /**
          * Called when the list of children is loaded or updated.
+         *
+         * @param parentId The media id of the parent media item.
+         * @param children The children which were loaded.
          */
         public void onChildrenLoaded(@NonNull String parentId,
                                      @NonNull List<MediaItem> children) {
@@ -686,8 +741,32 @@ public class MediaBrowserCompat {
          * If this is called, the subscription remains until {@link MediaBrowserCompat#unsubscribe}
          * called, because some errors may heal themselves.
          * </p>
+         *
+         * @param parentId The media id of the parent media item whose children could
+         * not be loaded.
          */
-        public void onError(@NonNull String id) {
+        public void onError(@NonNull String parentId) {
+        }
+    }
+
+    /**
+     * Callback for receiving the result of {@link #getItem}.
+     */
+    public static abstract class ItemCallback {
+        /**
+         * Called when the item has been returned by the browser service.
+         *
+         * @param item The item that was returned or null if it doesn't exist.
+         */
+        public void onItemLoaded(MediaItem item) {
+        }
+
+        /**
+         * Called when the item doesn't exist or there was an error retrieving it.
+         *
+         * @param itemId The media id of the media item which could not be loaded.
+         */
+        public void onError(@NonNull String itemId) {
         }
     }
 

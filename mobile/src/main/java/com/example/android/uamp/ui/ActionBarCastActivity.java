@@ -20,6 +20,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
@@ -123,7 +124,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
                         ActionBarCastActivity.this, R.anim.fade_in, R.anim.fade_out).toBundle();
 
                 Class activityClass = mDrawerMenuContents.getActivity(position);
-                startActivity(new Intent(ActionBarCastActivity.this, activityClass), extras);
+                ActivityCompat.startActivity(ActionBarCastActivity.this, new Intent(ActionBarCastActivity.this, activityClass), extras);
                 finish();
             }
         }

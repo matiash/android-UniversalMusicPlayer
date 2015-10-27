@@ -26,12 +26,12 @@ import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.VerticalGridPresenter;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.media.browse.MediaBrowserCompat;
 import android.support.v4.media.browse.MediaBrowserCompat.MediaItem;
 import android.text.TextUtils;
 
-import com.example.android.uamp.ui.MediaControllerProvider;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.List;
@@ -39,7 +39,7 @@ import java.util.List;
 /*
  * VerticalGridFragment shows a grid of music songs
  */
-public class TvVerticalGridFragment extends android.support.v17.leanback.app.VerticalGridFragment {
+public class TvVerticalGridFragment extends android.support.v17.leanback.app.VerticalGridSupportFragment {
     private static final String TAG = LogHelper.makeLogTag(TvVerticalGridFragment.class);
 
     private static final int NUM_COLUMNS = 5;
@@ -47,7 +47,6 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
     private ArrayObjectAdapter mAdapter;
     private String mMediaId;
     private MediaFragmentListener mMediaFragmentListener;
-    private MediaControllerProvider mMediaControllerProvider;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,7 +70,6 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         mMediaFragmentListener = (MediaFragmentListener) activity;
-        mMediaControllerProvider = (MediaControllerProvider) activity;
     }
 
     protected void setMediaId(String mediaId) {
@@ -105,7 +103,6 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
     public void onDetach() {
         super.onDetach();
         mMediaFragmentListener = null;
-        mMediaControllerProvider = null;
     }
 
     public interface MediaFragmentListener {
@@ -117,7 +114,7 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                                   RowPresenter.ViewHolder rowViewHolder, Row row) {
 
-            mMediaControllerProvider.getSupportMediaController().getTransportControls()
+            getActivity().getSupportMediaController().getTransportControls()
                     .playFromMediaId(((MediaItem) item).getMediaId(), null);
 
             Intent intent = new Intent(getActivity(), TvPlaybackActivity.class);
@@ -126,7 +123,7 @@ public class TvVerticalGridFragment extends android.support.v17.leanback.app.Ver
                     ((ImageCardView) itemViewHolder.view).getMainImageView(),
                     TvVerticalGridActivity.SHARED_ELEMENT_NAME).toBundle();
 
-            getActivity().startActivity(intent, bundle);
+            ActivityCompat.startActivity(getActivity(), intent, bundle);
         }
     }
 

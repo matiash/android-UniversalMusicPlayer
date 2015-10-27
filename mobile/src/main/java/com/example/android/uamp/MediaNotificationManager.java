@@ -82,7 +82,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         updateSessionToken();
 
         mNotificationColor = ResourceHelper.getThemeColor(mService,
-            android.R.attr.colorPrimary, Color.DKGRAY);
+            R.attr.colorPrimary, Color.DKGRAY);
 
         mNotificationManager = (NotificationManager) mService
                 .getSystemService(Context.NOTIFICATION_SERVICE);
@@ -302,7 +302,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                     .setMediaSession(mSessionToken))
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setUsesChronometer(true)
                 .setContentIntent(createContentIntent(description))
                 .setContentTitle(description.getTitle())

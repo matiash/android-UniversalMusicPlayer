@@ -62,7 +62,6 @@ public class MediaBrowserFragment extends Fragment {
     private BrowseAdapter mBrowserAdapter;
     private String mMediaId;
     private MediaFragmentListener mMediaFragmentListener;
-    private MediaControllerProvider mMediaControllerProvider;
     private View mErrorView;
     private TextView mErrorMessage;
     private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
@@ -140,7 +139,6 @@ public class MediaBrowserFragment extends Fragment {
         // If used on an activity that doesn't implement MediaFragmentListener, it
         // will throw an exception as expected:
         mMediaFragmentListener = (MediaFragmentListener) activity;
-        mMediaControllerProvider = (MediaControllerProvider)activity;
     }
 
     @Override
@@ -194,8 +192,8 @@ public class MediaBrowserFragment extends Fragment {
         if (mediaBrowser != null && mediaBrowser.isConnected() && mMediaId != null) {
             mediaBrowser.unsubscribe(mMediaId);
         }
-        if (mMediaControllerProvider.getSupportMediaController() != null) {
-            mMediaControllerProvider.getSupportMediaController().unregisterCallback(mMediaControllerCallback);
+        if (getActivity().getSupportMediaController() != null) {
+            getActivity().getSupportMediaController().unregisterCallback(mMediaControllerCallback);
         }
         this.getActivity().unregisterReceiver(mConnectivityChangeReceiver);
     }
@@ -204,7 +202,6 @@ public class MediaBrowserFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mMediaFragmentListener = null;
-        mMediaControllerProvider = null;
     }
 
     public String getMediaId() {
@@ -248,8 +245,8 @@ public class MediaBrowserFragment extends Fragment {
         mMediaFragmentListener.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
 
         // Add MediaControllerCompat callback so we can redraw the list when metadata changes:
-        if (mMediaControllerProvider.getSupportMediaController() != null) {
-            mMediaControllerProvider.getSupportMediaController().registerCallback(mMediaControllerCallback);
+        if (getActivity().getSupportMediaController() != null) {
+            getActivity().getSupportMediaController().registerCallback(mMediaControllerCallback);
         }
     }
 
@@ -261,7 +258,7 @@ public class MediaBrowserFragment extends Fragment {
             showError = true;
         } else {
             // otherwise, if state is ERROR and metadata!=null, use playback state error message:
-            MediaControllerCompat controller = mMediaControllerProvider.getSupportMediaController();
+            MediaControllerCompat controller = getActivity().getSupportMediaController();
             if (controller != null
                 && controller.getMetadata() != null
                 && controller.getPlaybackState() != null
@@ -346,7 +343,7 @@ public class MediaBrowserFragment extends Fragment {
             int itemState = MediaItemViewHolder.STATE_NONE;
             if (item.isPlayable()) {
                 itemState = MediaItemViewHolder.STATE_PLAYABLE;
-                MediaControllerCompat controller = mMediaControllerProvider.getSupportMediaController();
+                MediaControllerCompat controller = getActivity().getSupportMediaController();
                 if (controller != null && controller.getMetadata() != null) {
                     String currentPlaying = controller.getMetadata().getDescription().getMediaId();
                     String musicId = MediaIDHelper.extractMusicIDFromMediaID(

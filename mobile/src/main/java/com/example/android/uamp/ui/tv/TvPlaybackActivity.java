@@ -19,6 +19,7 @@ import android.content.ComponentName;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.browse.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -32,7 +33,7 @@ import com.example.android.uamp.utils.LogHelper;
  * Activity used to display details of the currently playing song, along with playback controls
  * and the playing queue.
  */
-public class TvPlaybackActivity extends TvBaseActivity {
+public class TvPlaybackActivity extends FragmentActivity {
     private static final String TAG = LogHelper.makeLogTag(TvPlaybackActivity.class);
 
     private MediaBrowserCompat mMediaBrowser;
@@ -49,7 +50,7 @@ public class TvPlaybackActivity extends TvBaseActivity {
 
         setContentView(R.layout.tv_playback_controls);
 
-        mPlaybackFragment = (TvPlaybackFragment) getFragmentManager()
+        mPlaybackFragment = (TvPlaybackFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.playback_controls_fragment);
     }
 

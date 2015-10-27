@@ -15,9 +15,7 @@
  */
 package com.example.android.uamp.ui;
 
-import android.app.ActivityManager;
 import android.content.ComponentName;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
@@ -31,18 +29,16 @@ import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.NetworkHelper;
-import com.example.android.uamp.utils.ResourceHelper;
 
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
 public abstract class BaseActivity extends ActionBarCastActivity
-        implements MediaBrowserProvider, MediaControllerProvider {
+        implements MediaBrowserProvider {
 
     private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
 
     private MediaBrowserCompat mMediaBrowser;
-    private MediaControllerCompat mMediaController;
     private PlaybackControlsFragment mControlsFragment;
 
     @Override
@@ -86,15 +82,6 @@ public abstract class BaseActivity extends ActionBarCastActivity
     @Override
     public MediaBrowserCompat getMediaBrowser() {
         return mMediaBrowser;
-    }
-
-    @Override
-    public MediaControllerCompat getSupportMediaController() {
-        return mMediaController;
-    }
-
-    private void setSupportMediaController(MediaControllerCompat controller) {
-        mMediaController = controller;
     }
 
     protected void onMediaControllerConnected() {

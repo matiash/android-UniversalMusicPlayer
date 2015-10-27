@@ -18,6 +18,7 @@ package com.example.android.uamp.ui.tv;
 import android.content.ComponentName;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.browse.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 
@@ -25,7 +26,7 @@ import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
-public class TvVerticalGridActivity extends TvBaseActivity
+public class TvVerticalGridActivity extends FragmentActivity
         implements TvVerticalGridFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(TvVerticalGridActivity.class);
@@ -65,7 +66,7 @@ public class TvVerticalGridActivity extends TvBaseActivity
 
     protected void browse() {
         LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mMediaId);
-        TvVerticalGridFragment fragment = (TvVerticalGridFragment) getFragmentManager()
+        TvVerticalGridFragment fragment = (TvVerticalGridFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.vertical_grid_fragment);
         fragment.setMediaId(mMediaId);
         fragment.setTitle(mTitle);

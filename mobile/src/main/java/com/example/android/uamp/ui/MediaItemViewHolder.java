@@ -21,6 +21,7 @@ import android.content.res.ColorStateList;
 import android.graphics.drawable.AnimationDrawable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.widget.ImageViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,22 +78,22 @@ public class MediaItemViewHolder {
             switch (state) {
                 case STATE_PLAYABLE:
                     holder.mImageView.setImageDrawable(
-                        ContextCompat.getDrawable(activity, R.drawable.ic_play_arrow_black_36dp));
-                    holder.mImageView.setImageTintList(sColorStateNotPlaying);
+                            ContextCompat.getDrawable(activity, R.drawable.ic_play_arrow_black_36dp));
+                    ImageViewCompat.setImageTintList(holder.mImageView, sColorStateNotPlaying);
                     holder.mImageView.setVisibility(View.VISIBLE);
                     break;
                 case STATE_PLAYING:
                     AnimationDrawable animation = (AnimationDrawable)
                             ContextCompat.getDrawable(activity, R.drawable.ic_equalizer_white_36dp);
                     holder.mImageView.setImageDrawable(animation);
-                    holder.mImageView.setImageTintList(sColorStatePlaying);
+                    ImageViewCompat.setImageTintList(holder.mImageView, sColorStatePlaying);
                     holder.mImageView.setVisibility(View.VISIBLE);
                     if (animation != null) animation.start();
                     break;
                 case STATE_PAUSED:
                     holder.mImageView.setImageDrawable(
                             ContextCompat.getDrawable(activity, R.drawable.ic_equalizer1_white_36dp));
-                    holder.mImageView.setImageTintList(sColorStateNotPlaying);
+                    ImageViewCompat.setImageTintList(holder.mImageView, sColorStateNotPlaying);
                     holder.mImageView.setVisibility(View.VISIBLE);
                     break;
                 default:
@@ -105,9 +106,9 @@ public class MediaItemViewHolder {
     }
 
     static private void initializeColorStateLists(Context ctx) {
-        sColorStateNotPlaying = ColorStateList.valueOf(ctx.getResources().getColor(
+        sColorStateNotPlaying = ColorStateList.valueOf(ContextCompat.getColor(ctx,
             R.color.media_item_icon_not_playing));
-        sColorStatePlaying = ColorStateList.valueOf(ctx.getResources().getColor(
+        sColorStatePlaying = ColorStateList.valueOf(ContextCompat.getColor(ctx,
             R.color.media_item_icon_playing));
     }
 }

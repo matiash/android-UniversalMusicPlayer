@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.browse.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 
@@ -30,7 +31,7 @@ import com.example.android.uamp.utils.LogHelper;
 /**
  * Main activity for the Android TV user interface.
  */
-public class TvBrowseActivity extends TvBaseActivity
+public class TvBrowseActivity extends FragmentActivity
         implements TvBrowseFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(TvBrowseActivity.class);
@@ -89,7 +90,7 @@ public class TvBrowseActivity extends TvBaseActivity
     protected void navigateToBrowser(String mediaId) {
         LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
         TvBrowseFragment fragment =
-                (TvBrowseFragment) getFragmentManager().findFragmentById(R.id.main_browse_fragment);
+                (TvBrowseFragment) getSupportFragmentManager().findFragmentById(R.id.main_browse_fragment);
         fragment.initializeWithMediaId(mediaId);
         mMediaId = mediaId;
         if (mediaId == null) {

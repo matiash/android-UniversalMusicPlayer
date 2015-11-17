@@ -28,8 +28,8 @@ import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.VerticalGridPresenter;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.media.browse.MediaBrowserCompat;
-import android.support.v4.media.browse.MediaBrowserCompat.MediaItem;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.text.TextUtils;
 
 import com.example.android.uamp.utils.LogHelper;

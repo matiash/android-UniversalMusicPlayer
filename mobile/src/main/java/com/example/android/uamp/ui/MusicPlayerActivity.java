@@ -20,7 +20,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.media.browse.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserCompat;
 import android.text.TextUtils;
 
 import com.example.android.uamp.R;
@@ -144,9 +144,11 @@ public class MusicPlayerActivity extends BaseActivity
             fragment = new MediaBrowserFragment();
             fragment.setMediaId(mediaId);
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            /*
             transaction.setCustomAnimations(
                 R.animator.slide_in_from_right, R.animator.slide_out_to_left,
                 R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+            */
             transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
             // If this is not the top level media (root), we add it to the fragment back stack,
             // so that actionbar toggle and Back will work appropriately:

@@ -20,7 +20,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.browse.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -92,9 +92,11 @@ public abstract class BaseActivity extends ActionBarCastActivity
         LogHelper.d(TAG, "showPlaybackControls");
         if (NetworkHelper.isOnline(this)) {
             getSupportFragmentManager().beginTransaction()
+                    /*
                 .setCustomAnimations(
                     R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom,
                     R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom)
+                    */
                 .show(mControlsFragment)
                 .commit();
         }

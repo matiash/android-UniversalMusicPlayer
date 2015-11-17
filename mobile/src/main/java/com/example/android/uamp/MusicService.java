@@ -31,11 +31,11 @@ package com.example.android.uamp;
  import android.support.annotation.NonNull;
  import android.support.v4.media.MediaDescriptionCompat;
  import android.support.v4.media.MediaMetadataCompat;
- import android.support.v4.media.browse.MediaBrowserCompat;
- import android.support.v4.media.browse.MediaBrowserCompat.MediaItem;
+ import android.support.v4.media.MediaBrowserCompat;
+ import android.support.v4.media.MediaBrowserCompat.MediaItem;
  import android.support.v4.media.session.MediaSessionCompat;
  import android.support.v4.media.session.PlaybackStateCompat;
- import android.support.v4.service.media.MediaBrowserServiceCompat;
+ import android.support.v4.media.MediaBrowserServiceCompat;
  import android.support.v7.media.MediaRouter;
  import android.text.TextUtils;
 

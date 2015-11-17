@@ -18,6 +18,7 @@ package com.example.android.uamp;
 
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.support.v4.graphics.BitmapCompat;
 import android.support.v4.util.LruCache;
 
 import com.example.android.uamp.utils.BitmapHelper;
@@ -61,8 +62,8 @@ public final class AlbumArtCache {
         mCache = new LruCache<String, Bitmap[]>(maxSize) {
             @Override
             protected int sizeOf(String key, Bitmap[] value) {
-                return value[BIG_BITMAP_INDEX].getByteCount()
-                    + value[ICON_BITMAP_INDEX].getByteCount();
+                return BitmapCompat.getAllocationByteCount(value[BIG_BITMAP_INDEX])
+                    + BitmapCompat.getAllocationByteCount(value[ICON_BITMAP_INDEX]);
             }
         };
     }

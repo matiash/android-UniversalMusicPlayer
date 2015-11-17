@@ -29,7 +29,7 @@ import android.net.Uri;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v4.media.MediaDescriptionCompat;
-import android.support.v4.media.browse.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.view.View;
 import android.view.ViewGroup;
